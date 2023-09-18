@@ -1,11 +1,13 @@
 # Copyright 2022 Intel Corporation
 # SPDX-License-Identifier: MIT
 
-set_global_assignment -name SOURCE_TCL_SCRIPT_FILE bsp_design_files.tcl
+set THIS_DIR [file dirname [info script]]
+set_global_assignment -name SOURCE_TCL_SCRIPT_FILE "${THIS_DIR}/bsp_design_files.tcl"
 
 #add the MPF/VTP components
+set THIS_DIR [file dirname [info script]]
 set_global_assignment -name VERILOG_MACRO "MPF_PLATFORM_DCP_PCIE=1"
-source "./ip/BBB_cci_mpf/hw/par/qsf_cci_mpf_PAR_files.qsf"
+source "${THIS_DIR}/ip/BBB_cci_mpf/hw/par/qsf_cci_mpf_PAR_files.qsf"
 
 #The following lines should be included when compiling with SignalTap.
 #  Rename the .stp file as appropriate.

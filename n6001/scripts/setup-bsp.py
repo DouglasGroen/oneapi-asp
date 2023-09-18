@@ -193,8 +193,7 @@ def setup_bsp(bsp_root, env_vars, bsp, verbose):
         print("KERNEL_BUILD_DIR_RELATIVE_TO_QUARTUS_BUILD_DIR %s" % (KERNEL_BUILD_DIR_RELATIVE_TO_QUARTUS_BUILD_DIR) )
     
     #symlink the contents of bsp_dir/build into syn_top
-    BSP_BUILD_DIR_FILES=os.path.join(bsp_qsf_dir, '*')
-    ASP_BUILD_DIR_SYMLINK_CMD="cd " + QUARTUS_SYN_DIR + " && ln -s " + ASP_BUILD_DIR_RELATIVE_TO_QUARTUS_BUILD_DIR + "/* ."
+    ASP_BUILD_DIR_SYMLINK_CMD="cd " + QUARTUS_SYN_DIR + " && ln -s " + ASP_BUILD_DIR_RELATIVE_TO_QUARTUS_BUILD_DIR + "/scripts ."
     run_cmd(ASP_BUILD_DIR_SYMLINK_CMD)
     
     #symlink the (i)ofs_top.qpf and (i)ofs_pr_afu.qsf file to bsp_dir

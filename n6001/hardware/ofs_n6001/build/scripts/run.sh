@@ -21,12 +21,13 @@ Q_PR_PARTITION_NAME="green_region"
 echo "Q_PR_PARTITION_NAME is $Q_PR_PARTITION_NAME"
 
 # set BSP flow
-if [ $# -eq 0 ]
-then
-    BSP_FLOW="afu_flat"
-else
-    BSP_FLOW="$1"
-fi
+#if [ $# -eq 0 ]
+#then
+#    BSP_FLOW="afu_flat"
+#else
+#    BSP_FLOW="$1"
+#fi
+BSP_FLOW=ofs_pr_afu
 echo "Compiling '$BSP_FLOW' bsp-flow"
 
 SCRIPT_PATH=$(readlink -f "${BASH_SOURCE[0]}")
@@ -34,13 +35,13 @@ echo "OFS BSP run.sh script path: $SCRIPT_PATH"
 SCRIPT_DIR_PATH="$(dirname "$SCRIPT_PATH")"
 
 #if flow-type is 'flat_kclk' uncomment USE_KERNEL_CLK_EVERYWHERE_IN_PR_REGION in opencl_bsp.vh
-if [ ${BSP_FLOW} = "afu_flat_kclk" ]; then
-    echo "Enabling the USE_KERNEL_CLK_EVERYWHERE_IN_PR_REGION define in the Shim RTL..."
-    SHIM_HEADER_FILE_NAME="${SCRIPT_DIR_PATH}/../rtl/opencl_bsp.vh"
-    echo "Modifying the header file ${SHIM_HEADER_FILE_NAME} to uncomment the define and include it in the design."
-    sed -i -e 's/\/\/`define USE_KERNEL_CLK_EVERYWHERE_IN_PR_REGION/`define USE_KERNEL_CLK_EVERYWHERE_IN_PR_REGION/' "$SHIM_HEADER_FILE_NAME"
-    BSP_FLOW="afu_flat"
-fi
+#if [ ${BSP_FLOW} = "afu_flat_kclk" ]; then
+#    echo "Enabling the USE_KERNEL_CLK_EVERYWHERE_IN_PR_REGION define in the Shim RTL..."
+#    SHIM_HEADER_FILE_NAME="${SCRIPT_DIR_PATH}/../rtl/opencl_bsp.vh"
+#    echo "Modifying the header file ${SHIM_HEADER_FILE_NAME} to uncomment the define and include it in the design."
+#    sed -i -e 's/\/\/`define USE_KERNEL_CLK_EVERYWHERE_IN_PR_REGION/`define USE_KERNEL_CLK_EVERYWHERE_IN_PR_REGION/' "$SHIM_HEADER_FILE_NAME"
+#    BSP_FLOW="afu_flat"
+#fi
 
 cd "$SCRIPT_DIR_PATH/.." || exit
 AFU_BUILD_PWD=`pwd`
@@ -77,10 +78,12 @@ fi
 
 RELATIVE_BSP_BUILD_PATH_TO_HERE=`realpath --relative-to=$AFU_BUILD_PWD $BSP_BUILD_PWD`
 RELATIVE_KERNEL_BUILD_PATH_TO_HERE=`realpath --relative-to=$AFU_BUILD_PWD $KERNEL_BUILD_PWD`
+
 #create new '$BSP_FLOW' revision based on the one used to compile the kernel
-cp -f ${RELATIVE_KERNEL_BUILD_PATH_TO_HERE}/ofs_pr_afu.qsf ./$BSP_FLOW.qsf
+cp -f ${RELATIVE_KERNEL_BUILD_PATH_TO_HERE}/$BSP_FLOW.qsf .
+
 #add ASP/$BSP_FLOW-specific stuff to the qsf file
-echo "source afu_ip.qsf" >> ./$BSP_FLOW.qsf
+#echo "source afu_ip.qsf" >> ./$BSP_FLOW.qsf
 
 #symlink the compiled kernel files to here from their origin (except the )
 MYLIST=`ls --ignore=fim_platform --ignore=build $RELATIVE_KERNEL_BUILD_PATH_TO_HERE`
@@ -96,9 +99,9 @@ do
     fi
 done
 
-qsys-generate -syn --quartus-project=$Q_REVISION --rev=$BSP_FLOW board.qsys
+qsys-generate -syn --quartus-project=$Q_REVISION --rev=$BSP_FLOW $RELATIVE_KERNEL_BUILD_PATH_TO_HERE/build/board.qsys
 ## adding board.qsys and corresponding .ip parameterization files to opencl_bsp_ip.qsf
-qsys-archive --quartus-project=$Q_REVISION --rev=$BSP_FLOW --add-to-project board.qsys
+qsys-archive --quartus-project=$Q_REVISION --rev=$BSP_FLOW --add-to-project $RELATIVE_KERNEL_BUILD_PATH_TO_HERE/build/board.qsys
 
 # compile project
 # =====================
