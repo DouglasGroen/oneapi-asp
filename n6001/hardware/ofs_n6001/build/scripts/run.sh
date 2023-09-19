@@ -77,7 +77,9 @@ then
 fi
 
 RELATIVE_BSP_BUILD_PATH_TO_HERE=`realpath --relative-to=$AFU_BUILD_PWD $BSP_BUILD_PWD`
+echo "run.sh: RELATIVE_BSP_BUILD_PATH_TO_HERE is $RELATIVE_BSP_BUILD_PATH_TO_HERE"
 RELATIVE_KERNEL_BUILD_PATH_TO_HERE=`realpath --relative-to=$AFU_BUILD_PWD $KERNEL_BUILD_PWD`
+echo "run.sh: RELATIVE_KERNEL_BUILD_PATH_TO_HERE is $RELATIVE_KERNEL_BUILD_PATH_TO_HERE"
 
 #create new '$BSP_FLOW' revision based on the one used to compile the kernel
 cp -f ${RELATIVE_KERNEL_BUILD_PATH_TO_HERE}/$BSP_FLOW.qsf .
@@ -91,6 +93,7 @@ for f in ${MYLIST}
 do
     #merge the ASP's 'ip' folder with the kernel-system's 'ip' folder
     if [ "$f" == "ip" ]; then
+        mkdir -p ip
         cd ip
         ln -s ../${RELATIVE_KERNEL_BUILD_PATH_TO_HERE}/ip/* .
         cd  ..
