@@ -13,12 +13,12 @@ BSP_ROOT="$(readlink -e "$INTERNAL_SCRIPT_DIR_PATH/../..")"
 # URL for intel-fpag-bbb to use internal mirror then restore file to avoid
 # committing changes
 if [[ "$HOME" =~ "/storage/shared/home_directories" ]]; then
-  (cd "$BSP_ROOT/.." && git submodule deinit fseries-dk/source/extra/intel-fpga-bbb)
+  (cd "$BSP_ROOT/.." && git submodule deinit n6001/source/extra/intel-fpga-bbb)
   sed -i 's,https://github.com/OPAE/intel-fpga-bbb.git,ssh://git@gitlab.devtools.intel.com:29418/OPAE/intel-fpga-bbb-x.git,g' "$BSP_ROOT/../.gitmodules"
-  (cd "$BSP_ROOT/.." && git submodule update --init fseries-dk/source/extra/intel-fpga-bbb && git checkout "$BSP_ROOT/../.gitmodules")
+  (cd "$BSP_ROOT/.." && git submodule update --init n6001/source/extra/intel-fpga-bbb && git checkout "$BSP_ROOT/../.gitmodules")
 else
   echo "Warning did not detect minicloud home directory structure"
-  (cd "$BSP_ROOT/.." && git submodule update --init fseries-dk/source/extra/intel-fpga-bbb)
+  (cd "$BSP_ROOT/.." && git submodule update --init n6001/source/extra/intel-fpga-bbb)
 fi
 
 "$INTERNAL_SCRIPT_DIR_PATH/../build-mmd.sh"

@@ -29,10 +29,10 @@ if [ -n "$OFS_ASP_ENV_DEBUG_SCRIPTS" ]; then
 fi
 
 if [ -z $1 ]; then
-    if pwd | grep -qw "fseries-dk"; then
-        PLATFORM_TARGET="fseries-dk"
-        NONUSM_BOARD="fseries-dk"
-        USM_BOARD="fseries-dk_usm"
+    if pwd | grep -qw "n6001"; then
+        PLATFORM_TARGET="ofs_n6001"
+        NONUSM_BOARD="ofs_n6001"
+        USM_BOARD="ofs_n6001_usm"
     else
         PLATFORM_TARGET="ofs_d5005"
         NONUSM_BOARD="ofs_d5005"

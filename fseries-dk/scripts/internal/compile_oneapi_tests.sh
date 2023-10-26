@@ -1,7 +1,7 @@
 
 if [ -z $1 ]; then
-    if pwd | grep -qw "fseries-dk"; then
-        PLATFORM_TARGET="fseries-dk"
+    if pwd | grep -qw "n6001"; then
+        PLATFORM_TARGET="ofs_n6001"
     else
         PLATFORM_TARGET="ofs_d5005"
     fi
@@ -16,7 +16,7 @@ declare -a usm_designs=("simple_host_streaming" "buffered_host_streaming" "zero_
 declare -a iopipes_designs=("io_streaming_multi_pipes" "io_streaming_one_pipe")
 
 #group all of the designs into a single array
-if [ "${PLATFORM_TARGET}" == "fseries-dk" ]; then
+if [ "${PLATFORM_TARGET}" == "ofs_n6001" ]; then
     declare -a all_designs=("${non_usm_designs[@]}" "${usm_designs[@]}" "${iopipes_designs[@]}")
 else
     declare -a all_designs=("${non_usm_designs[@]}" "${usm_designs[@]}")
@@ -51,7 +51,7 @@ else
     echo "oneAPI-samples folder already exists. Skipping the clone+checkout."
 fi
 
-if [ "${PLATFORM_TARGET}" == "fseries-dk" ]; then
+if [ "${PLATFORM_TARGET}" == "ofs_n6001" ]; then
     if [ ! -d examples-afu ]; then
         echo "clone the examples-afu repo, using the master branch"
         git clone https://github.com/OFS/examples-afu
@@ -105,7 +105,7 @@ do
         
         #the CMakeLists.txt files are not completely consistent across different designs. 
         #it's ugly, but we beed to mix-and-match some options here.
-        if [ "${PLATFORM_TARGET}" == "fseries-dk" ]; then
+        if [ "${PLATFORM_TARGET}" == "ofs_n6001" ]; then
             THIS_DEVICE="Agilex7"
         else
             THIS_DEVICE="S10"
