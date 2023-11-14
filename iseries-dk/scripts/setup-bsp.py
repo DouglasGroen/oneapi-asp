@@ -128,8 +128,8 @@ def setup_bsp(bsp_root, env_vars, bsp, verbose):
     print("bsp_dir is %s\n" % bsp_dir)
     
     #preserve the pr-build-template folder
-    delete_and_mkdir(os.path.join(bsp_dir, '../../pr_build_template'))
-    copy_glob(deliverable_dir, os.path.join(bsp_dir, '../../'),verbose)
+    #delete_and_mkdir(os.path.join(bsp_dir, '../../pr_build_template'))
+    #copy_glob(deliverable_dir, os.path.join(bsp_dir, '../../'),verbose)
     
     #preserve the blue_bits folder from $OPAE_PLATFORM_ROOT/hw/
     delete_and_mkdir(os.path.join(bsp_dir, 'blue_bits'))
@@ -177,19 +177,19 @@ def setup_bsp(bsp_root, env_vars, bsp, verbose):
     ASP_BASE_DIR_ABS=bsp_dir
     
     QUARTUS_BUILD_DIR_RELATIVE_TO_ASP_BUILD_DIR=os.path.relpath(QUARTUS_SYN_DIR,bsp_qsf_dir)
-    if verbose:
+    if 1:
         print("QUARTUS_BUILD_DIR_RELATIVE_TO_ASP_BUILD_DIR %s" % (QUARTUS_BUILD_DIR_RELATIVE_TO_ASP_BUILD_DIR) )
     
     QUARTUS_BUILD_DIR_RELATIVE_TO_KERNEL_BUILD_DIR=os.path.relpath(QUARTUS_SYN_DIR,bsp_dir)
-    if verbose:
+    if 1:
         print("QUARTUS_BUILD_DIR_RELATIVE_TO_KERNEL_BUILD_DIR %s" % (QUARTUS_BUILD_DIR_RELATIVE_TO_KERNEL_BUILD_DIR) )
     
     ASP_BUILD_DIR_RELATIVE_TO_QUARTUS_BUILD_DIR=os.path.relpath(bsp_qsf_dir,QUARTUS_SYN_DIR)
-    if verbose:
+    if 1:
         print("ASP_BUILD_DIR_RELATIVE_TO_QUARTUS_BUILD_DIR %s" % (ASP_BUILD_DIR_RELATIVE_TO_QUARTUS_BUILD_DIR) )
     
     KERNEL_BUILD_DIR_RELATIVE_TO_QUARTUS_BUILD_DIR=os.path.relpath(bsp_dir,QUARTUS_SYN_DIR)
-    if verbose:
+    if 1:
         print("KERNEL_BUILD_DIR_RELATIVE_TO_QUARTUS_BUILD_DIR %s" % (KERNEL_BUILD_DIR_RELATIVE_TO_QUARTUS_BUILD_DIR) )
     
     BUILD_SCRIPTS_DIR=os.path.join(bsp_qsf_dir,'scripts')
@@ -202,7 +202,7 @@ def setup_bsp(bsp_root, env_vars, bsp, verbose):
     
     #symlink the contents of bsp_dir/build into syn_top
     BSP_BUILD_DIR_FILES=os.path.join(bsp_qsf_dir, '*')
-    ASP_BUILD_DIR_SYMLINK_CMD="cd " + QUARTUS_SYN_DIR + " && ln -s " + ASP_BUILD_DIR_RELATIVE_TO_QUARTUS_BUILD_DIR + "/* ."
+    ASP_BUILD_DIR_SYMLINK_CMD="cd " + QUARTUS_SYN_DIR + " && ln -sf " + ASP_BUILD_DIR_RELATIVE_TO_QUARTUS_BUILD_DIR + "/* ."
     run_cmd(ASP_BUILD_DIR_SYMLINK_CMD)
     
     #symlink the (i)ofs_top.qpf and (i)ofs_pr_afu.qsf file to bsp_dir
@@ -212,13 +212,18 @@ def setup_bsp(bsp_root, env_vars, bsp, verbose):
     else:
         PR_AFU_QSF_FILENAME="iofs_pr_afu.qsf"
         PR_AFU_QPF_FILENAME="d5005.qpf"
+    
+    print("PR_AFU_QPF_FILENAME is %s" % PR_AFU_QPF_FILENAME)
+    print("PR_AFU_QSF_FILENAME is %s" % PR_AFU_QSF_FILENAME)
+    #print("finding the *pr_afu.qsf and *.qpf files")
+    #PR_AFU_QPF_FILENAME=get_file_path("*.qpf")
         
     rm_glob(os.path.join(bsp_dir, PR_AFU_QSF_FILENAME))
-    OFS_PR_AFU_QSF_SYMLINK_CMD="cd " + bsp_dir + " && ln -s " + QUARTUS_BUILD_DIR_RELATIVE_TO_KERNEL_BUILD_DIR + "/" + PR_AFU_QSF_FILENAME + " ."
+    OFS_PR_AFU_QSF_SYMLINK_CMD="cd " + bsp_dir + " && ln -sf " + QUARTUS_BUILD_DIR_RELATIVE_TO_KERNEL_BUILD_DIR + "/" + PR_AFU_QSF_FILENAME + " ."
     run_cmd(OFS_PR_AFU_QSF_SYMLINK_CMD)
 
     rm_glob(os.path.join(bsp_dir, PR_AFU_QPF_FILENAME))
-    OFS_TOP_QPF_SYMLINK_CMD="cd " + bsp_dir + " && ln -s " + QUARTUS_BUILD_DIR_RELATIVE_TO_KERNEL_BUILD_DIR + "/" + PR_AFU_QPF_FILENAME + " ."
+    OFS_TOP_QPF_SYMLINK_CMD="cd " + bsp_dir + " && ln -sf " + QUARTUS_BUILD_DIR_RELATIVE_TO_KERNEL_BUILD_DIR + "/" + PR_AFU_QPF_FILENAME + " ."
     run_cmd(OFS_TOP_QPF_SYMLINK_CMD)
     
     print("\nsetup-bsp.py completed successfully for variant %s\n" % bsp)
