@@ -29,7 +29,7 @@
   </device>
 
   <!-- This isn't ideal (unidirectional ports) but the current compiler can't handle multiple rw ports. -->
-  <global_mem name="host" max_bandwidth="30000" config_addr="0x018" allocation_type="host, shared">
+  <global_mem name="host" max_bandwidth="30000" config_addr="0x018" interleaved_bytes="2048" allocation_type="host, shared">
     <interface name="board" type="agent" width="512" maxburst="16" address="0x000000000" size="0x1000000000000" latency="800" waitrequest_allowance="7">
         <port name="kernel_mem_0" direction="r"/>
         <port name="kernel_mem_1" direction="w"/>
