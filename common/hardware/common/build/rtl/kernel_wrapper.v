@@ -429,7 +429,7 @@ kernel_system kernel_system_inst (
 );
 
 `ifdef INCLUDE_USM_SUPPORT
-    `ifdef ASP_ENABLE_USM_CH_1
+    `ifndef ASP_ENABLE_USM_CH_1
         assign svm_avmm_kernelsystem[1].burstcount = 0;
         assign svm_avmm_kernelsystem[1].writedata = 0;
         assign svm_avmm_kernelsystem[1].address = 0;
