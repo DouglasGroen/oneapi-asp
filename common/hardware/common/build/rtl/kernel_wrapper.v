@@ -428,13 +428,14 @@ kernel_system kernel_system_inst (
 
 `ifdef INCLUDE_USM_SUPPORT
     `ifndef ASP_ENABLE_USM_CH_1
-            assign svm_avmm_kernelsystem[1].burstcount = 0;
-            assign svm_avmm_kernelsystem[1].writedata = 0;
-            assign svm_avmm_kernelsystem[1].address = 0;
-            assign svm_avmm_kernelsystem[1].write = 0;
-            assign svm_avmm_kernelsystem[1].read = 0;
-            assign svm_avmm_kernelsystem[1].byteenable = 0;
+        assign svm_avmm_kernelsystem[1].burstcount = 0;
+        assign svm_avmm_kernelsystem[1].writedata = 0;
+        assign svm_avmm_kernelsystem[1].address = 0;
+        assign svm_avmm_kernelsystem[1].write = 0;
+        assign svm_avmm_kernelsystem[1].read = 0;
+        assign svm_avmm_kernelsystem[1].byteenable = 0;
     `endif
+    
     `ifdef USM_DO_SINGLE_BURST_PARTIAL_WRITES
         genvar uu;
         generate
