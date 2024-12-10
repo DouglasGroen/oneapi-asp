@@ -98,8 +98,8 @@ module afu_id_avmm_slave #(
         DFH_addr_5[15:0]  = 2; 
         
         //child DFH_LO/HI
-        DFH_addr_6 = 'b0;
-        DFH_addr_7 = 'b0;
+        DFH_addr_6 = MULTI_LINK_CHILD_GUID_L;
+        DFH_addr_7 = MULTI_LINK_CHILD_GUID_H;
     end
 
 endmodule
