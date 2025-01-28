@@ -45,13 +45,14 @@ A single DMA controller (and set of control and status registers) exists, as wel
 - ASP Hardware enhancements
 	- common/hardware/build/rtl/afu.sv -> change host_mem_if(_dma/_usm) into arrays of interfaces
 	- common/hardware/build/rtl/asp_logic.sv -> change single interfaces into arrays (host-mem, DMA, USM); add extra DMA ports to the board_tw.tcl module port-list
-	- common/hardware/common/build/rtl/dma/dma_dispatcher.sv -> turn the rd_ctrl/wr_ctrl interfaces into arrays
+	- common/hardware/common/build/rtl/dma/dma_dispatcher.sv -> turn the rd_ctrl/wr_ctrl interfaces into arrays; add logic to split transfer into 2 halves and also to generate a single completion signal.
 	- common/hardware/common/build/rtl/dma/dma_top.sv -> handle DMA-interface arrays by moving the transfer blocks into for-generate loops
-	- common/hardware/common/build/rtl/host_mem_if_vtp.sv -> this is the VTP stuff happens; now we need to replicate the vtp_translation blocks for each interface and add vtp_ports to the vtp_svc block.
+	- common/hardware/common/build/rtl/host_mem_if_vtp.sv -> this is where the VTP stuff happens; now we need to replicate the vtp_translation blocks for each interface and add vtp_ports to the vtp_svc block.
 	- common/hardware/common/build/rtl/kernel_wrapper.v -> change the USM AVMM interface into an array of interfaces, and add `define'd ports to the kernel-system instantiation
 	- hardware/common/build/rtl/ofs_asp_pkg.sv -> updates to add more parameters defining the number of PCIe, DMA, and USM interfaces, as well as the number of vtp-ports on the svc block
 	- hardware/*/build/rtl/ofs_asp.vh -> this will need to be updated to handle the appropriate number of interfaces; eventually this will probably be written by a script or an output from PD
-	-
+	- USM board_spec.xml -> add 2nd global-mem interface to match the existing USM version; modify the memory addresses for USM and DDR as required.
+    - parameters.tcl -> number of DMA channels field is used within the hw.tcl file to mux the DMA channels into the memory-bank-divider
 	
 - ASP Software enhancements
   - Hopefully none.
