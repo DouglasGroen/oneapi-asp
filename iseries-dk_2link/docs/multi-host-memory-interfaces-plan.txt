@@ -1,0 +1,67 @@
+
+# Intel OFS OneAPI-ASP - Support for Multiple Host-Memory Interfaces
+
+## Introduction
+
+As PCIe speeds increase, the OFS FIM will move from a single AXI-S interface to multiple AXI-S interfaces. At Gen4x16 data rates, a single 512-bit data bus is capable of saturating the link. However, at Gen5x16 data rates (and beyond), the data bus or the clock frequency would need to be doubled in order to saturate the link using a single interface. Neither of those options are appealing from a resource point of view - routing and timing would be very difficult to achieve. So, the PCIe HIP will introduce multiplex multiple interfaces which the FIM will pass along to the AFU region. This means the ASP will need to manage multiple interfaces as well - whereas in the past we've only ever considered a single host-memory interface.
+
+## Key Concerns and Questions Requiring Answers
+
+- How to make our best effort to saturate the available PCIe bandwidth? How to split DMA and USM (also host-pipes and other future paths) across the multiple channels.
+- Consider Gen5x16 with 2 interfaces - do we just send DMA traffic to one interface and USM traffic to the other? Or do we split DMA traffic across both channels AND split USM traffic across both channels?
+- For the DMA path: how do we actually split up a DMA transfer across multiple channels? Does it occur in the mmd and the mmd splits up a single DMA request from the runtime across all of the available DMA channels? Or does the DMA controller in the ASP RTL split up a single DMA request from the mmd? How does each channel report completion to the mmd?
+- For the USM path: does the compiler prefer a single 1k bit interface? Or does it prefer 2 (and eventually more) separate 512-bit interfaces? If multiple interfaces, how should the addresses be defined in the board-spec.xml file? Evenly split across each interface, or each USM interface will be a common address range across the host-memory-space and the compile will determine which interface to use?
+- How does VTP work? We only need a single VTP service block, but which host-memory interface should it exist on? Use interface '0' as the control/status interface as well as a data-transfer interface? It will then offer slightly lower performance than the other channels (because there will be CSR stuff happening, and page-table lookups, etc).
+- How does MMIO work? Managing MMIO transactions across multiple interfaces could be problematic/annoying. Leave all of them on interface '0'? Why not?
+  
+### Background: Current Single-Interface Implementation
+
+We currently use a single AXI-S interface from the FIM. This single interface carries MMIO requests from the host, and host-memory requests from the AFU/ASP. A PIM module is used to split the single AXI-S interface into an AVMM interface for MMIO transactions and a rd/wr AVMM interface for host-memory transactions. The host-memory transactions use virtual addresses in the ASP (both DMA and USM), and VTP translation modules are used to translate the virtual addresses to physical host-memory addresses. A single VTP-service module is instantiated in the ASP to handle address translations for both DMA and USM requests. Each path (DMA and USM) has their own VTP-translation module which works with the common VTP-service module to manage the address translations. The ASP's DMA controller and kernel-system (USM) are the host of each path, so when a host-memory access is initiated it is held in the translation module until the physical address has been determined. When the physical address is determined, the translation module will pass along the transaction with the appropriate physical address. The DMA and USM translation modules are multiplexed together on their way to the PIM's AXI-to-AVMM conversion module. 
+A single DMA controller (and set of control and status registers) exists, as well as the option for a single USM interface (controlled by the kernel-system).
+
+
+### Customer use-model
+- We want the user to not have to worry about how to get full bandwidth during DMA and/or USM transactions. 
+	- We (the ASP-team) have more control over the DMA-path than over the USM path (we don't control USM transactions, we just pass them along). We still need to figure out whether the DMA transfer should be split up by the mmd or by the DMA controller, and how many channels to replicate, etc - whatever we choose, the user shouldn't know nor care.
+	- Fully saturating the PCIe bandwidth via USM transactions will likely need to be designed by the oneAPI user, the oneAPI compiler, or both, since the ASP doesn't control the initiation of a USM transfer.
+
+
+### OneAPI ASP Software (mmd) enhancements
+- VTP translations
+	- Since the host-memory space is common across all of the PCIe interfaces and DMA/USM paths, a single VTP-service module will be instantiated in the ASP with a pair of 'vtp_port' interfaces provided to each DMA/USM VTP-translation module. The single VTP-service will be connected to the first PCIe interface ([0]) input to the AFU/ASP. This should mean that the mmd will not even know there are multiple PCIe interfaces used by the ASP hardware. 
+	- If performance (on PCIe interface [0] or across all interfaces) is negatively impacted by having a shared VTP-service we will need to consider implementing multiple VTP-service modules which the mmd will need to set up. I'm not sure how this would work out. It will also consume more FPGA resources, of course.
+- ASP DMA controller
+	- I am considering 2 ways to support multiple PCIe interfaces where the user doesn't know the low-level details of the transfer. 
+		- 1) The mmd will split the transfer request across multiple instances of the DMA controller. A single DMA dispatcher module would exist, with duplicated sets of control/status registers (src/dst/len/etc) for each DMA channel / PCIe interface. The mmd would receive a memory transfer request and split that request across the number of available PCIe/DMA interfaces. The mmd would need to track completions - interrupts/host-memory-writes - across all of the interfaces.
+		- 2) The mmd issues a normal DMA transfer request to the ASP DMA controller - a single set of src/dst/len/etc registers. The ASP DMA controller will split the single transfer across the number of available DMA/PCIe interfaces. There will only be a single completion notification on the first PCIe interface ([0]) - the 'done' information for each DMA transfer interface will be aggregated into a single 'done' indicator to the mmd.
+- USM transactions
+	- There shouldn't be anything needed by the mmd to support multi-PCIe-interface USM transactions, as the mmd isn't actually involved in USM transfers.
+	
+
+
+
+
+## Files modified/added to the project  
+- ASP Hardware enhancements
+	- common/hardware/build/rtl/afu.sv -> change host_mem_if(_dma/_usm) into arrays of interfaces
+	- common/hardware/build/rtl/asp_logic.sv -> change single interfaces into arrays (host-mem, DMA, USM); add extra DMA ports to the board_tw.tcl module port-list
+	- common/hardware/common/build/rtl/dma/dma_dispatcher.sv -> turn the rd_ctrl/wr_ctrl interfaces into arrays
+	- common/hardware/common/build/rtl/dma/dma_top.sv -> handle DMA-interface arrays by moving the transfer blocks into for-generate loops
+	- common/hardware/common/build/rtl/host_mem_if_vtp.sv -> this is the VTP stuff happens; now we need to replicate the vtp_translation blocks for each interface and add vtp_ports to the vtp_svc block.
+	- common/hardware/common/build/rtl/kernel_wrapper.v -> change the USM AVMM interface into an array of interfaces, and add `define'd ports to the kernel-system instantiation
+	- hardware/common/build/rtl/ofs_asp_pkg.sv -> updates to add more parameters defining the number of PCIe, DMA, and USM interfaces, as well as the number of vtp-ports on the svc block
+	- hardware/*/build/rtl/ofs_asp.vh -> this will need to be updated to handle the appropriate number of interfaces; eventually this will probably be written by a script or an output from PD
+	-
+	
+- ASP Software enhancements
+  - Hopefully none.
+
+
+## Testing
+- A modified version of boardtest's USM-test where 2 links are explicitly used to read, write, and read/write data.
+
+
+## Version
+|Version  |Contributors  |Date  |Description of changes
+|---------|---------|---------|---------|
+v1.0  |Paritosh Ajgaonkar, Douglas Groen, Bernhard Oelkrug,|  2024-02-15|  Intial FD
