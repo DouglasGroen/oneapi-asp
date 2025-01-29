@@ -37,8 +37,8 @@ A single DMA controller (and set of control and status registers) exists, as wel
 - USM transactions
 	- There shouldn't be anything needed by the mmd to support multi-PCIe-interface USM transactions, as the mmd isn't actually involved in USM transfers.
 	
-
-
+Example multi-link AFU:
+○ https://github.com/OFS/examples-afu/tree/main/tutorial/afu_types/04_multi_link
 
 
 ## Files modified/added to the project  
